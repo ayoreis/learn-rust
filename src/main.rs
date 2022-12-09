@@ -1,46 +1,50 @@
-use ferris_says::say;
 use std::io;
-use rand::Rng;
-use std::cmp::Ordering;
+use json;
+use std::io::Write;
 
 fn main() {
-    // let stdout = io::stdout();
-    // let message = String::from("Hello fellow Rustaceans!");
-    // let width = message.chars().count();
+    let stdin = io::stdin();
 
-    // let mut writer = io::BufWriter::new(stdout.lock());
-    // say(message.as_bytes(), width, &mut writer).unwrap();
-
-    println!("🎲 Guess the number!");
-
-    let secret_number = rand::thread_rng().gen_range(1..=100);
+    println!("💅 Make some JSON pretty!\n");
 
     loop {
-        println!("Please input your guess.");
+        let mut json = String::new();
 
-        let mut guess = String::new();
+        println!("Type some JSON:\n");
+    
+        stdin
+            .read_line(&mut json)
+            .expect("Invalid input");
 
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
+        let parsed = match json::parse(&json) {
+            Ok(value) => {
+                value
+            },
 
-        let guess: u32 = match guess.trim().parse() {
-            Ok(number) => number,
             Err(_) => {
-                println!("Number please!");
-                continue;
+                println!("\nError! Try again\n");
+
+                continue
             },
         };
 
-        println!("You guessed: {guess}");
+        let pretty = json::stringify_pretty(parsed, 4);
 
-        match guess.cmp(&secret_number) {
-            Ordering::Less => println!("Too small!"),
-            Ordering::Greater => println!("Too big!"),
-            Ordering::Equal => {
-                println!("🥳 You win!");
-                break;
-            },
+        println!("\n{pretty}\n");
+        print!("Exit? (y/N) ");
+        io::stdout().flush().unwrap();
+
+        let mut exit = String::new();
+
+        stdin
+            .read_line(&mut exit)
+            .unwrap();
+
+        match exit.to_lowercase().trim() {
+            "y" => break,
+            _ => {},
         }
-    }  
+    }
+
+    println!("\n👋 Bye! I hope you liked your pretty JSON");
 }
